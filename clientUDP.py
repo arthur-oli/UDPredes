@@ -15,14 +15,17 @@ def verificar_checksum(data_with_checksum):
     # Compara os checksums
     return checksum == checksum_calculado
 
-
-# localhost
-serverAddressPort = ("127.0.0.1", 20001)
-
-# utilizar ipv4 do server caso for em LAN
-# serverAddressPort = ("192.168.0.67", 20001)
-
 bufferSize = 1040
+opcaoServer = input("Conectar em localhost? (Digite 0).\nConectar em outro servidor? (Digite o IP + porta XXX.XXX.X.XX:YYYYY).\n")
+
+if opcaoServer == '0':
+    serverAddressPort = ("127.0.0.1", 20001)
+
+else:
+    split = opcaoServer.split(':')
+    serverAddress = split[0]
+    serverPort = int(split[1])
+    serverAddressPort = (serverAddress, serverPort)
 
 fileName = input("Digite o o nome do arquivo + extensão: ")
 bytesToSend = str.encode('LER ' + fileName)
@@ -52,11 +55,13 @@ chunkCount = 0
 while True:
     #Recebe um pedaço do arquivo
     data_with_checksum, _ = UDPClientSocket.recvfrom(bufferSize)
-   
     #Se não há mais dados, saia do loop
     if not data_with_checksum:
         break
     
+    if data_with_checksum.startswith('FileNotFoundError'.encode('utf-8')):
+        exit()
+   
     #Conta número de chunks recebidos
     chunkCount += 1
     if opcao == 'S' and chunkCount == perda:

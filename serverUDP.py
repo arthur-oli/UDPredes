@@ -18,22 +18,25 @@ print("Servidor UDP ouvindo na porta {}".format(localPort))
 
 #Resposta ao cliente
 def responder_cliente(fileName, address):
-    with open(fileName, 'rb') as file:
-        while data := file.read(1024):
+    try:
+        with open(fileName, 'rb') as file:
+            while data := file.read(1024):
 
-            #Calcula o checksum utilizando md5
-            checksum = hashlib.md5(data).digest()
+                #Calcula o checksum utilizando md5
+                checksum = hashlib.md5(data).digest()
 
-            #Inicializa como NOK para cair no while
-            check = 'NOK'
-            #Envia o pedaço para o cliente enquanto continuar tendo perda
-            while check == 'NOK':
-                UDPServerSocket.sendto(checksum + data, address)
-                check = UDPServerSocket.recvfrom(bufferSize)
-                check = check[0].decode('utf-8')
-                if check == 'NOK': 
-                    print('NOK recebido. Reenviando parte do arquivo.')
-
+                #Inicializa como NOK para cair no while
+                check = 'NOK'
+                #Envia o pedaço para o cliente enquanto continuar tendo perda
+                while check == 'NOK':
+                    UDPServerSocket.sendto(checksum + data, address)
+                    check = UDPServerSocket.recvfrom(bufferSize)
+                    check = check[0].decode('utf-8')
+                    if check == 'NOK': 
+                        print('NOK recebido. Reenviando parte do arquivo.')
+    
+    except FileNotFoundError:
+        UDPServerSocket.sendto('FileNotFoundError'.encode('utf-8'), address)
     #Envia vazio para fechar o recebimento no cliente
     UDPServerSocket.sendto(b'', address)
 
